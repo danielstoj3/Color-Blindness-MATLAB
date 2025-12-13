@@ -1,34 +1,39 @@
-%% Close all disable for testing
+%% Close All Disable For Testing
+
 close all
+
 %% Settings Section
-% Image Used
-RGBimage = imread("VisionSamples.jpeg");
 
-% Method Used
-method = 2;
+% image used
+RGBimage = imread("colorCheckerTestImage.jpg");
 
-% ImageSC Display toggle
+% method used
+method = 1;
+
+% imageSC display toggle
 displayImageSC = 0;
 
-% Original Grouping
+% original grouping
 numberOfHueOriginalGroups = 10;
 numberOfSatOriginalGroups = 4;
 numberOfValOriginalGroups = 4;
 
-% Filter Grouping
+% filter grouping
 numberOfHueFilterGroups = 10;
 numberOfSatFilterGroups = 4;
 numberOfValFilterGroups = 4;
 
-% Groups of difficulty
+% groups of difficulty
 difficultyGroupingAutomatic = 1;
+
 if difficultyGroupingAutomatic ==1
     numberOfDifficultGroups = 5;
 else
-    DifficultyPerecentCutoff = 10;
+    DifficultyPercentCutoff = 10;   % percent
 end
 
 %% Setup
+
 HSVimage = rgb2hsv(RGBimage);
 untouchedHSV = HSVimage;
 imageHue = HSVimage(:,:,1);
@@ -38,18 +43,22 @@ originalHue = imageHue;
 originalValues = imageValues;
 originalSat = imageSat;
 redHigh = 330/360;
+
 if method == 1 || method == 3
-    yellowHue = 52/360; %52 or 60
-    blueHue = 220/360; %220 or 240
+    yellowHue = 52/360;       % 52 or 60
+    blueHue = 220/360;        % 220 or 240
 elseif method == 2
-    yellowHue = 60/360; %52 or 60
-    blueHue = 240/360; %220 or 240
+    yellowHue = 60/360;       % 52 or 60
+    blueHue = 240/360;        % 220 or 240
 end
+
 greenHigh = 160/360;
+
 %% Method 1
+
 if method == 1
-    % Main Value shift
-    % Bright Red to yellow value shift
+    % MAIN VALUE SHIFT
+    % bright red to yellow value shift
     underYellowImage = imageHue;
     underYellowImage(underYellowImage==0) = -1;
     underYellowImage(underYellowImage>yellowHue) = 0;
@@ -58,14 +67,14 @@ if method == 1
     imageValues = imageValues - underYellowImage.*4.*originalSat;
     imageValues(imageValues<0) = 0;
     
-    % Yellow to green value shift
+    % yellow to green value shift
     aboveYellowImage = imageHue;
     aboveYellowImage(aboveYellowImage<yellowHue | aboveYellowImage>greenHigh) = 0;
     aboveYellowImage(aboveYellowImage>0) = aboveYellowImage(aboveYellowImage>0) - (yellowHue);
     imageValues = imageValues - aboveYellowImage.*originalSat;
     imageValues(imageValues<0) = 0;
     
-    % Dark Red to purple value
+    % dark red to purple value
     overRedImage = imageHue;
     overRedImage(overRedImage<redHigh) = 0;
     overRedImage(overRedImage>0) = 1 - overRedImage(overRedImage>0);
@@ -86,14 +95,14 @@ if method == 1
     imageSat = imageSat - BPShift.*3.*originalValues.*originalSat;
     imageSat(imageSat<0) = 0;
     
-    % Green Bright Blue sat shift
+    % green bright blue sat shift
     GBBShift = imageHue;
     GBBShift(GBBShift < greenHigh | GBBShift > greenHigh+25/360) = 0;
     GBBShift(GBBShift>0) = .25 - abs(180/360-GBBShift(GBBShift>0));
     imageSat = imageSat - GBBShift.*3.*originalValues.*originalSat;
     imageSat(imageSat<0) = 0;
     
-    % Green val shift
+    % green val shift
     GShift = imageHue;
     GShift(GShift < greenHigh | GShift > greenHigh+10/360) = 0;
     GShift(GShift>0) = GShift(GShift>0)-greenHigh;
@@ -102,7 +111,7 @@ if method == 1
     imageValues(imageValues<0) = 0;
     imageSat(imageSat<0) = 0;
     
-    % Purple sat shift
+    % purple sat shift
     PShift = imageHue;
     PShift(PShift < redHigh-10/360 | PShift > redHigh) = 0;
     PShift(PShift>0) = .20 - (redHigh - PShift(PShift>0));
@@ -111,18 +120,18 @@ if method == 1
     imageSat(imageSat<0) = 0;
     imageValues(imageValues<0) = 0;
 
-
-
-    % Hue Shift
-    % Major color shift
+    % hue shift
+    % major color shift
     imageHue(imageHue <= greenHigh) = yellowHue;
     imageHue(imageHue >= redHigh) = yellowHue;
     imageHue(imageHue > greenHigh & imageHue < redHigh) = blueHue;
 end
+
 %% Method 2
+
 if method == 2
-    %------Value Shift------
-    % Bright Red to yellow value shift
+    % VALUE SHIFT
+    % bright red to yellow value shift
     underYellowImage = imageHue;
     underYellowImage(underYellowImage==0) = -1;
     underYellowImage(underYellowImage>yellowHue) = 0;
@@ -131,14 +140,14 @@ if method == 2
     imageValues = imageValues - underYellowImage.*3.*originalSat.*originalValues;
     imageValues(imageValues<0) = 0;
     
-    % Yellow to green value shift
+    % yellow to green value shift
     aboveYellowImage = imageHue;
     aboveYellowImage(aboveYellowImage<yellowHue | aboveYellowImage>greenHigh) = 0;
     aboveYellowImage(aboveYellowImage>0) = aboveYellowImage(aboveYellowImage>0) - yellowHue;
     imageValues = imageValues - aboveYellowImage.*1.5.*originalSat.*originalValues;
     imageValues(imageValues<0) = 0;
     
-    % Dark Red to purple value
+    % dark red to purple value
     overRedImage = imageHue;
     overRedImage(overRedImage<redHigh) = 0;
     overRedImage(overRedImage>0) = 1 - overRedImage(overRedImage>0);
@@ -147,8 +156,8 @@ if method == 2
     imageValues = imageValues - overRedImage.*1.8.*originalSat.*originalValues -overRedExtra.*originalSat.*originalValues;
     imageValues(imageValues<0) = 0;
     
-    %------Yellow Sat Shift------
-    % Blue Green sat shift
+    % YELLOW SAT SHIFT
+    % blue green sat shift
     BGShift = imageHue;
     BGShift(BGShift < 130/360 | BGShift > greenHigh) = 0;
     BGShift(BGShift>0) = BGShift(BGShift>0) - 130/360;
@@ -156,7 +165,7 @@ if method == 2
     imageValues = imageValues + BGShift.*2.*originalValues;
     imageSat(imageSat<0) = 0;
     
-    % Red Purple sat Shift
+    % red purple sat shift
     RPShift = imageHue;
     RPShift(RPShift < redHigh) = 0;
     RPShift(RPShift>0) = 1 - RPShift(RPShift>0);
@@ -165,8 +174,8 @@ if method == 2
     imageSat(imageSat<0) = 0;
     imageValues(imageValues>1) = 1;
     
-    %------Blue Sat Shift------
-    % Blue Purple sat shift
+    % BLUE SAT SHIFT
+    % blue purple sat shift
     BPShift = imageHue;
     BPShift(BPShift < greenHigh+25/360 | BPShift > blueHue) = 0;
     BPShift(BPShift>0) = abs(BPShift(BPShift>0) - blueHue);
@@ -179,14 +188,14 @@ if method == 2
     imageSat = imageSat - BPShift.*3.*originalValues.*originalSat;
     imageSat(imageSat<0) = 0;
     
-    % Green Bright Blue sat shift
+    % green bright blue sat shift
     GBBShift = imageHue;
     GBBShift(GBBShift < greenHigh | GBBShift > greenHigh+25/360) = 0;
     GBBShift(GBBShift>0) = .25 - abs(180/360-GBBShift(GBBShift>0));
     imageSat = imageSat - GBBShift.*3.*originalValues.*originalSat;
     imageSat(imageSat<0) = 0;
     
-    % Green val shift
+    % green val shift
     GShift = imageHue;
     GShift(GShift < greenHigh | GShift > greenHigh+10/360) = 0;
     GShift(GShift>0) = GShift(GShift>0)-greenHigh;
@@ -195,7 +204,7 @@ if method == 2
     imageValues(imageValues<0) = 0;
     imageSat(imageSat<0) = 0;
     
-    % Purple sat shift
+    % purple sat shift
     PShift = imageHue;
     PShift(PShift < redHigh-10/360 | PShift > redHigh) = 0;
     PShift(PShift>0) = .20 - (redHigh - PShift(PShift>0));
@@ -204,18 +213,22 @@ if method == 2
     imageSat(imageSat<0) = 0;
     imageValues(imageValues<0) = 0;
 
-    %------Hue Shift------
-    % Major color shift
+    % HUE SHIFT
+    % major color shift
     imageHue(imageHue <= greenHigh) = yellowHue;
     imageHue(imageHue >= redHigh) = yellowHue-5/360;
     imageHue(imageHue > greenHigh & imageHue < redHigh) = blueHue;
 end
+
 %% Method 3
+
 if method == 3
+
     satCutOff = originalSat;
     satCutOff(satCutOff>.5) = 1;
     satCutOff(satCutOff<=.5) = satCutOff(satCutOff<=.5).*2;
-    %Red orange Sat shift
+
+    % red orange sat shift
     ROSShift = imageHue;
     eqValues = [2397.8442,718.1918,-177.2063,10.1309,0.0029];
     ROSShift(ROSShift >= redHigh) = ROSShift(ROSShift >= redHigh)-1;
@@ -226,7 +239,7 @@ if method == 3
     imageSat(imageSat>1) = 1;
     imageSat(imageSat<0) = 0;
 
-    % Red orange Val shift
+    % red orange val shift
     shiftValues = imageHue;
     eqValues = [1354.0773,139.1387,-32.5140,3.1049,-0.4417];
     shiftValues(shiftValues >= 348/360) = shiftValues(shiftValues >= 348/360)-1;
@@ -238,7 +251,7 @@ if method == 3
     imageValues(imageValues>1) = 1;
     imageValues(imageValues<0) = 0;
 
-    % Red transition Val shift part one
+    % red transition val shift PART 1
     shiftValues = imageHue;
     shiftValues(shiftValues >= 348/360 | shiftValues <= 346/360) = 0;
     shiftValues(shiftValues~=0) = shiftValues(shiftValues~=0)-1;
@@ -246,7 +259,7 @@ if method == 3
     shiftArea(shiftArea~=0) = 1;
     shiftFirstAmount = (eqValues(1).*shiftValues.^4 + eqValues(2).*shiftValues.^3 + eqValues(3).*shiftValues.^2 + eqValues(4).*shiftValues + eqValues(5).*shiftArea).*satCutOff;
 
-    % Red purple Val shift
+    % red purple val shift
     shiftValues = imageHue;
     eqValues = [2930.919,1541.738,337.554,24.995,0.000];
     shiftValues(shiftValues >= redHigh & shiftValues <= 346/360) = shiftValues(shiftValues >= redHigh & shiftValues <= 346/360)-1;
@@ -257,7 +270,7 @@ if method == 3
     imageValues(imageValues>1) = 1;
     imageValues(imageValues<0) = 0;
 
-    % Red transition Val shift part two
+    % red transition val shift PART 2
     shiftValues = imageHue;
     shiftValues(shiftValues >= 348/360 | shiftValues <= 346/360) = 0;
     shiftValues(shiftValues~=0) = shiftValues(shiftValues~=0)-1;
@@ -265,7 +278,7 @@ if method == 3
     shiftArea(shiftArea~=0) = 1;
     shiftSecondAmount = (eqValues(1).*shiftValues.^4 + eqValues(2).*shiftValues.^3 + eqValues(3).*shiftValues.^2 + eqValues(4).*shiftValues + eqValues(5).*shiftArea).*satCutOff;
     
-    % Adding red Val transition
+    % adding red val transition
     shiftValues = imageHue;
     shiftValues(shiftValues >= 348/360 | shiftValues <= 346/360) = 0;
     shiftValues(shiftValues~=0) = (shiftValues(shiftValues~=0) - 346/360).*(360/2);
@@ -275,9 +288,7 @@ if method == 3
     imageValues(imageValues>1) = 1;
     imageValues(imageValues<0) = 0;
 
-    
-    
-    % Yellow green Sat shift
+    % yellow green sat shift
     YGSShift = imageHue;
     eqValues = [-11.2504,13.0523,-3.4541,0.2652];
     YGSShift(YGSShift < 45/360 | YGSShift > greenHigh) = 0;
@@ -287,27 +298,23 @@ if method == 3
     imageSat(imageSat>1) = 1;
     imageSat(imageSat<0) = 0;
 
-    %------Hue Shift------
-    % Major color shift
+    % HUE SHIFT
+    % major color shift
     imageHue(imageHue <= greenHigh) = yellowHue;
     imageHue(imageHue >= redHigh) = yellowHue;
 
     % RGHShift = imageHue;
     % RGHShift(RGHShift>=redHigh) = 1-RGHShift(RGHShift >= redHigh);
-    %eqValues = [-29.1968,17.5030,-3.0967,0.1798,0.1443];
-    %imageHue(originalHue <= greenHigh) = eqValues(1).*RGHShift(originalHue <= greenHigh).^4 + eqValues(2).*RGHShift(originalHue <= greenHigh).^3 + eqValues(3).*RGHShift(originalHue <= greenHigh).^2 + eqValues(4).*RGHShift(originalHue <= greenHigh) + eqValues(5);
-    %imageHue(originalHue >= redHigh) = eqValues(1).*RGHShift(originalHue >= redHigh).^4 + eqValues(2).*RGHShift(originalHue >= redHigh).^3 + eqValues(3).*RGHShift(originalHue >= redHigh).^2 + eqValues(4).*RGHShift(originalHue >= redHigh) + eqValues(5);
+    % eqValues = [-29.1968,17.5030,-3.0967,0.1798,0.1443];
+    % imageHue(originalHue <= greenHigh) = eqValues(1).*RGHShift(originalHue <= greenHigh).^4 + eqValues(2).*RGHShift(originalHue <= greenHigh).^3 + eqValues(3).*RGHShift(originalHue <= greenHigh).^2 + eqValues(4).*RGHShift(originalHue <= greenHigh) + eqValues(5);
+    % imageHue(originalHue >= redHigh) = eqValues(1).*RGHShift(originalHue >= redHigh).^4 + eqValues(2).*RGHShift(originalHue >= redHigh).^3 + eqValues(3).*RGHShift(originalHue >= redHigh).^2 + eqValues(4).*RGHShift(originalHue >= redHigh) + eqValues(5);
 
-    
     imageSat(imageHue > greenHigh & imageHue < redHigh) = 0;
-    
 end
 
+%% Displaying Filter Results
 
-
-
-%% displaying filter results
-% Setting values
+% setting values
 HSVimage(:,:,1) = imageHue;
 HSVimage(:,:,2) = imageSat;
 HSVimage(:,:,3) = imageValues;
@@ -317,10 +324,12 @@ imshow(RGBimage)
 figure
 imshow(filteredImage)
 
-%% Original Image grouping
-% Hue Grouping
+%% Original Image Grouping
+
+% hue grouping
 hueGrouping = linspace(0,1,(numberOfHueOriginalGroups+1));
 hueSectionsOriginal = zeros(size(originalHue,1),size(originalHue,2));
+
 for i = 1:numberOfHueOriginalGroups-1
     hueSection = zeros(size(originalHue,1),size(originalHue,2));
     hueSection(originalHue >= hueGrouping(i) & originalHue < hueGrouping(i+1)) = 1;
@@ -330,76 +339,87 @@ hueSection = zeros(size(originalHue,1),size(originalHue,2));
 hueSection(originalHue >= hueGrouping(end-1)) = 1;
 hueSectionsOriginal = hueSectionsOriginal+hueSection.*numberOfHueOriginalGroups;
 
-% Sat grouping
+% sat grouping
 satGrouping = linspace(0,1,(numberOfSatOriginalGroups+1));
 satSectionsOriginal = zeros(size(originalSat,1),size(originalSat,2));
+
 for i = 1:numberOfSatOriginalGroups-1
     satSection = zeros(size(originalSat,1),size(originalSat,2));
     satSection(originalSat >= satGrouping(i) & originalSat < satGrouping(i+1)) = 1;
     satSectionsOriginal = satSectionsOriginal + satSection*i;
 end
+
 satSection = zeros(size(originalSat,1),size(originalSat,2));
 satSection(originalSat >= satGrouping(end-1)) = 1;
 satSectionsOriginal = satSectionsOriginal + satSection*numberOfSatOriginalGroups;
 
-% Val grouping
+% val grouping
 valGrouping = linspace(0,1,(numberOfValOriginalGroups+1));
 valSectionsOriginal = zeros(size(originalValues,1),size(originalValues,2));
+
 for i = 1:numberOfValOriginalGroups-1
     valSection = zeros(size(originalValues,1),size(originalValues,2));
     valSection(originalValues >= valGrouping(i) & originalValues < valGrouping(i+1)) = 1;
     valSectionsOriginal = valSectionsOriginal + valSection*i;
 end
+
 valSection = zeros(size(originalValues,1),size(originalValues,2));
 valSection(originalValues >= valGrouping(end-1)) = 1;
 valSectionsOriginal = valSectionsOriginal + valSection*numberOfValOriginalGroups;
 
-%% Filtered Image grouping
-% Hue Grouping
+%% Filtered Image Grouping
+
+% hue grouping
 hueGroupingFilter = linspace(0,1,(numberOfHueFilterGroups+1));
 hueSectionsFilter = zeros(size(imageHue,1),size(imageHue,2));
+
 for i = 1:numberOfHueFilterGroups-1
     hueSection = zeros(size(imageHue,1),size(imageHue,2));
     hueSection(imageHue >= hueGroupingFilter(i) & imageHue < hueGroupingFilter(i+1)) = 1;
     hueSectionsFilter = hueSectionsFilter + hueSection*i;
 end
+
 hueSection = zeros(size(imageHue,1),size(imageHue,2));
 hueSection(imageHue >= hueGroupingFilter(end-1)) = 1;
 hueSectionsFilter = hueSectionsFilter + hueSection*numberOfHueFilterGroups;
 
-% Sat grouping
+% sat grouping
 satGroupingFilter = linspace(0,1,(numberOfSatFilterGroups+1));
 satSectionsFilter = zeros(size(imageSat,1),size(imageSat,2));
+
 for i = 1:numberOfSatFilterGroups-1
     satSection = zeros(size(imageSat,1),size(imageSat,2));
     satSection(imageSat >= satGroupingFilter(i) & imageSat < satGroupingFilter(i+1)) = 1;
     satSectionsFilter = satSectionsFilter + satSection*i;
 end
+
 satSection = zeros(size(imageSat,1),size(imageSat,2));
 satSection(imageSat >= satGroupingFilter(end-1)) = 1;
 satSectionsFilter = satSectionsFilter + satSection*numberOfSatFilterGroups;
 
-
-% Val grouping
+% val grouping
 valGroupingFilter = linspace(0,1,(numberOfValFilterGroups+1));
 valSectionsFilter = zeros(size(imageValues,1),size(imageValues,2));
+
 for i = 1:numberOfValFilterGroups-1
     valSection = zeros(size(imageValues,1),size(imageValues,2));
     valSection(imageValues >= valGroupingFilter(i) & imageValues < valGroupingFilter(i+1)) = 1;
     valSectionsFilter = valSectionsFilter+valSection*i;
 end
+
 valSection = zeros(size(imageValues,1),size(imageValues,2));
 valSection(imageValues >= valGroupingFilter(end-1)) = 1;
 valSectionsFilter = valSectionsFilter+valSection*numberOfValFilterGroups;
 
-
 %% Combined Original Grouping
+
 numberOfCombinedOriginalGroups = numberOfHueOriginalGroups * numberOfSatOriginalGroups * numberOfValOriginalGroups;
 groupIDsOriginal = zeros(1,numberOfCombinedOriginalGroups);
 groupPixelsOriginal = zeros(1,size(imageValues,1)*size(imageValues,2));
 groupMatrixesOriginal = zeros(size(imageValues,1),size(imageValues,2));
 groupIndex = 1;
 tic
+
 for h = 1:numberOfHueOriginalGroups
     if any(any(hueSectionsOriginal==h))
         for s = 1:numberOfSatOriginalGroups
@@ -419,23 +439,27 @@ for h = 1:numberOfHueOriginalGroups
         end
     end
 end
+
 toc
 groupIDsOriginal(groupIDsOriginal==0) = [];
 groupPixelsOriginal(groupPixelsOriginal==0) = [];
 
-% Group Number Matrix
+% group number matrix
 originalNumberMatrix = groupMatrixesOriginal;
+
 for i = 1:length(groupIDsOriginal)
     originalNumberMatrix(originalNumberMatrix==groupIDsOriginal(i)) = i;
 end
 
 %% Combined Filtered Grouping
+
 numberOfCombinedFilterGroups = numberOfHueFilterGroups * numberOfSatFilterGroups * numberOfValFilterGroups;
 groupIDsFilter = zeros(1,numberOfCombinedFilterGroups);
 groupPixelsFilter = zeros(1,size(imageValues,1)*size(imageValues,2));
 groupMatrixesFilter = zeros(size(imageValues,1),size(imageValues,2));
 groupIndex = 1;
-%tic
+% tic
+
 for h = 1:numberOfHueFilterGroups
     if any(any(hueSectionsFilter==h))
         for s = 1:numberOfSatFilterGroups
@@ -455,30 +479,36 @@ for h = 1:numberOfHueFilterGroups
         end
     end
 end
-%toc
+
+% toc
 groupIDsFilter(groupIDsFilter==0) = [];
 groupPixelsFilter(groupPixelsFilter==0) = [];
 
-% Group Number Matrix
+% group number matrix
 filterNumberMatrix = groupMatrixesFilter;
+
 for i = 1:length(groupIDsFilter)
     filterNumberMatrix(filterNumberMatrix==groupIDsFilter(i)) = i;
 end
 
-%% Difficult sections
+%% Difficult Sections
+
 sortedPixelCountFilter = sort(groupPixelsFilter);
+
 if numberOfDifficultGroups > length(sortedPixelCountFilter)
     numberOfDifficultGroups = length(sortedPixelCountFilter);
 end
-DifficultGroupIDs = find(groupPixelsFilter>=sortedPixelCountFilter(end-(numberOfDifficultGroups-1)));
 
+DifficultGroupIDs = find(groupPixelsFilter>=sortedPixelCountFilter(end-(numberOfDifficultGroups-1)));
 difficultMatrix = groupMatrixesFilter;
+
 for i = 1:numberOfDifficultGroups
     difficultMatrix(difficultMatrix==groupIDsFilter(DifficultGroupIDs(i))) = DifficultGroupIDs(i);
 end
-difficultMatrix(difficultMatrix>max(DifficultGroupIDs)) = 0;
 
+difficultMatrix(difficultMatrix>max(DifficultGroupIDs)) = 0;
 figure
+
 for i = 1:numberOfDifficultGroups
     currentDifficultID = find(groupPixelsFilter==sortedPixelCountFilter(end-(i-1)));
     disp("Filter Group "+currentDifficultID+" with "+sortedPixelCountFilter(end-(i-1))+" pixels has "+(length(unique(unique(groupMatrixesOriginal(difficultMatrix==currentDifficultID)))))+" different original colors")
@@ -515,10 +545,11 @@ for i = 1:numberOfDifficultGroups
     title(titleText)
 end
 
+%% Test Display Of Original Results With ImageSC
 
-%% Test Display of Original results with imageSC
 if displayImageSC == 1
     groupRGBs = zeros(length(groupIDsOriginal),3);
+
     for i = 1:length(groupIDsOriginal)
         usedId = char(string(groupIDsOriginal(i)));
         aH = str2double(string(usedId(1:end-6)));
@@ -534,17 +565,19 @@ if displayImageSC == 1
         groupRGBs(i,2) = usedRGB(1,1,2);
         groupRGBs(i,3) = usedRGB(1,1,3);
     end
-    %disp(groupRGBs(1,1:3))
+
+    % disp(groupRGBs(1,1:3))
     
     figure
     imagesc(originalNumberMatrix)
     colormap(groupRGBs)
 end
 
+%% Test Display Of Filtered Results With ImageSC
 
-%% Test Display of Filtered results with imageSC
 if displayImageSC == 1
     groupRGBs = zeros(length(groupIDsFilter),3);
+
     for i = 1:length(groupIDsFilter)
         usedId = char(string(groupIDsFilter(i)));
         aH = str2double(string(usedId(1:end-6)));
@@ -560,14 +593,14 @@ if displayImageSC == 1
         groupRGBs(i,2) = usedRGB(1,1,2);
         groupRGBs(i,3) = usedRGB(1,1,3);
     end
-    %disp(groupRGBs(1,1:3))
-    
+    % disp(groupRGBs(1,1:3))
     figure
     imagesc(filterNumberMatrix)
     colormap(groupRGBs)
 end
 
-%% Test Display of grouping
+%% Test Display Of Grouping
+
 % for j = 1:numberOfValFiltergroups
 %     valGroupImage = filteredImage;
 %     for i = 1:3
@@ -579,7 +612,8 @@ end
 %     imshow(valGroupImage)
 % end
 
-%% Test Display of all groupings
+%% Test Display Of All Groupings
+
 % plotCol = 5;
 % plotRows = ceil((numberOfCombinedOriginalGroups/numberOfHueOriginalGroups)/plotCol);
 %         groupImage = RGBimage;
@@ -596,5 +630,3 @@ end
 %                 imshow(groupImage)
 %             end
 %         end
-
-   
